@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next-Gen Multi-Interface Calculator</title>
+    <!-- Importing a futuristic font -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. Root Variables & Themes --- */
+        :root {
+            --bg-dark: #0d121c;
+            --main-dark: #1a2333;
+            --text-dark: #d0e8ff;
+            --neon-blue: #00f0ff;
+            --neon-pink: #ff00ff;
+            --shadow-dark: rgba(0, 0, 0, 0.4);
+            --border-blur: rgba(255, 255, 255, 0.1);
+            --glass-blur: 20px;
+            --transition-speed: 0.3s;
+        }
+
+        /* Light Theme Variables */
+        .light-theme {
+            --bg-dark: #f0f4f8;
+            --main-dark: #ffffff;
+            --text-dark: #1a2333;
+            --neon-blue: #1c5af5;
+            --neon-pink: #f51c89;
+            --shadow-dark: rgba(0, 0, 0, 0.15);
+            --border-blur: rgba(0, 0, 0, 0.1);
+        }
+        .light-theme .key, .light-theme select, .light-theme input {
+            background: rgba(230, 230, 230, 0.7);
+            color: var(--text-dark);
+        }
+
+        /* Neon Theme Variables */
+        .neon-theme {
+            --bg-dark: #000000;
+            --main-dark: #100018;
+            --text-dark: var(--neon-blue);
+            --neon-blue: #39ff14; /* Electric Green */
+            --neon-pink: #ff00ff;
+            --shadow-dark: rgba(0, 0, 0, 0.6);
+            --border-blur: rgba(57, 255, 20, 0.3);
+        }
+        .neon-theme .key {
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 5px var(--neon-blue);
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .neon-theme .equals-key {
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+        .neon-theme .nav-btn.active {
+            box-shadow: 0 0 15px var(--neon-pink);
+            background: rgba(57, 255, 20, 0.2);
+        }
+
+
+        /* --- 2. Base & Global Styles --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', sans-serif;
+            transition: color var(--transition-speed), background-color var(--transition-speed), box-shadow var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- 2.1 Aurora Background Animation (Moving Nebula) --- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #0d121c, #001f3f, #0d121c);
+            background-size: 300% 300%;
+            animation: aurora-bg 20s ease infinite;
+            z-index: -2;
+            opacity: 0.8;
+        }
+
+        @keyframes aurora-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .light-theme::before { opacity: 0.1; background: linear-gradient(45deg, #e0e5ea, #ffffff, #e0e5ea); }
+        .neon-theme::before { opacity: 1; background: linear-gradient(45deg, #000, #100018, #000); }
+
+        /* --- 3. App Container (Glass Panel) --- */
+        #app-container {
+            width: 95%;
+            max-width: 450px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 30px;
+            background: rgba(26, 35, 51, 0.4);
+            backdrop-filter: blur(var(--glass-blur));
+            box-shadow: 0 8px 32px var(--shadow-dark), 0 0 15px var(--neon-blue);
+            border: 1px solid var(--border-blur);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            /* Breathing Neon Border Effect */
+            animation: glow-breath 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow-breath {
+            from { box-shadow: 0 8px 32px var(--shadow-dark), 0 0 10px var(--neon-blue); }
+            to { box-shadow: 0 8px 32px var(--shadow-dark), 0 0 25px var(--neon-pink); }
+        }
+        
+        #app-container.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        /* --- 3.1 Header & Controls --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .app-title {
+            font-size: 1.2em;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+
+        /* --- 3.2 Theme Switcher & Nav Bar --- */
+        .theme-switcher button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-blur);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-left: 5px;
+            opacity: 0.7;
+            transition: all var(--transition-speed);
+        }
+
+        .theme-switcher button:hover {
+            opacity: 1;
+            box-shadow: 0 0 10px var(--neon-pink);
+            transform: scale(1.05);
+        }
+
+        /* Bottom Navigation Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-radius: 15px;
+            background: rgba(26, 35, 51, 0.4);
+            backdrop-filter: blur(calc(var(--glass-blur) / 2));
+            box-shadow: inset 0 0 10px var(--neon-blue);
+            margin: -5px 0 10px;
+        }
+        .nav-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: inherit;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            opacity: 0.6;
+            font-size: 0.9em;
+        }
+        .nav-btn.active {
+            opacity: 1;
+            box-shadow: 0 0 10px var(--neon-blue);
+            background: rgba(0, 240, 255, 0.1);
+            border-radius: 10px;
+            margin: 0 5px;
+        }
+        .nav-btn:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .nav-btn span { display: block; }
+        .nav-btn .icon { font-size: 1.3em; margin-bottom: 2px; }
+
+        /* --- 4. Display Area --- */
+        .display {
+            min-height: 120px;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: right;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-blur);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            cursor: pointer;
+        }
+
+        #history-preview {
+            font-size: 1.1em;
+            opacity: 0.6;
+            min-height: 25px;
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        #history-preview::-webkit-scrollbar { display: none; }
+
+        #current-input {
+            font-size: 3em;
+            font-weight: 800;
+            overflow-x: auto;
+            white-space: nowrap;
+            line-height: 1.2;
+            scrollbar-width: none;
+        }
+        #current-input::-webkit-scrollbar { display: none; }
+        .light-theme #current-input { color: var(--neon-blue); }
+
+        /* --- 5. Interface Modes & Transitions --- */
+        .interface-container {
+            position: relative;
+            height: 400px; /* Fixed height to prevent layout jump on mode switch */
+            overflow: hidden;
+            padding-bottom: 10px; /* Space for mode content */
+        }
+
+        .mode-panel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+            transform: translateY(20px); /* Slide-in effect */
+        }
+
+        .mode-panel.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        /* --- 5.1 Keypad Grid --- */
+        .keypad-grid {
+            display: grid;
+            gap: 12px;
+            width: 100%;
+            height: 100%;
+        }
+
+        #standard .keypad-grid { grid-template-columns: repeat(4, 1fr); }
+        #scientific .keypad-grid { grid-template-columns: repeat(5, 1fr); }
+
+        /* --- 5.2 Buttons & Effects (Shared) --- */
+        .key {
+            background: rgba(255, 255, 255, 0.1);
+            color: inherit;
+            border: none;
+            padding: 20px 0;
+            border-radius: 15px;
+            font-size: 1.4em;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 5px rgba(0, 240, 255, 0.3);
+            transition: all 0.15s ease-out;
+        }
+        .key:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5), 0 0 15px var(--neon-blue);
+        }
+        .key:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        .action-key { opacity: 0.7; background: rgba(255, 100, 0, 0.15); }
+        .operator-key, .func-key { background: rgba(0, 240, 255, 0.1); font-size: 1.2em; }
+        .equals-key {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 15px var(--neon-pink);
+            color: var(--neon-pink);
+            grid-column: span 2;
+        }
+        .zero-key { grid-column: span 2; }
+        .func-key { font-size: 1em; padding: 15px 0; } /* Smaller padding for scientific keys */
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-anim 0.4s linear;
+            background-color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+        }
+        @keyframes ripple-anim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* --- 5.3 Unit Converter Styles --- */
+        .converter-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
+        .converter-controls, .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #converter-type {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: inherit;
+            border: 1px solid var(--border-blur);
+            font-size: 1em;
+            appearance: none; /* Remove default dropdown arrow */
+        }
+        .input-unit-pair {
+            display: flex;
+            flex-grow: 1;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid var(--border-blur);
+        }
+        .input-unit-pair input, .input-unit-pair select {
+            background: none;
+            border: none;
+            color: inherit;
+            padding: 10px 15px;
+            font-size: 1.1em;
+            outline: none;
+        }
+        .input-unit-pair input {
+            flex-grow: 1;
+            text-align: left;
+        }
+        .input-unit-pair select {
+            flex-grow: 0;
+            width: 100px;
+            text-align: right;
+            border-left: 1px solid var(--border-blur);
+        }
+        .switch-units {
+            font-size: 1.8em;
+            cursor: pointer;
+            color: var(--neon-pink);
+            transition: transform 0.2s;
+        }
+        .switch-units:hover {
+            transform: rotate(180deg);
+        }
+        .converter-result {
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        /* --- 5.4 History Panel Styles --- */
+        #history .keypad-grid {
+             /* Reuse grid for history clear button layout */
+             grid-template-columns: 1fr;
+             gap: 0;
+        }
+        #history-list-wrapper {
+            max-height: 350px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid var(--border-blur);
+            margin-bottom: 15px;
+        }
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-item:hover { background: rgba(0, 240, 255, 0.05); }
+        .history-item .expression { opacity: 0.7; font-size: 0.9em; }
+        .history-item .result { font-size: 1.2em; font-weight: 700; color: var(--neon-pink); }
+        .history-placeholder { text-align: center; opacity: 0.5; padding: 20px; font-size: 0.9em; }
+        #clear-history-btn {
+            background: rgba(255, 0, 0, 0.3);
+            color: #ffaaaa;
+            border: 1px solid #ff0000;
+            padding: 12px;
+        }
+        #clear-history-btn:hover {
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+
+        /* --- 6. Splash Screen --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+
+        .logo-text {
+            font-size: 3em;
+            font-weight: 800;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-pink);
+            animation: neon-pulse 1.5s infinite alternate;
+        }
+
+        @keyframes neon-pulse {
+            from { text-shadow: 0 0 5px var(--neon-blue); }
+            to { text-shadow: 0 0 20px var(--neon-blue), 0 0 30px var(--neon-pink); }
+        }
+
+        /* --- 7. Toast Notifications --- */
+        #toast-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+        }
+
+        .toast {
+            background: rgba(0, 240, 255, 0.9);
+            backdrop-filter: blur(5px);
+            color: #000;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--neon-blue);
+            opacity: 0;
+            animation: fadeInOut 3s forwards;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* --- 8. Footer --- */
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8em;
+            opacity: 0.5;
+        }
+
+        /* --- 9. Responsive Adjustments --- */
+        @media (max-width: 450px) {
+            #app-container {
+                max-width: 100%;
+                min-height: 100vh;
+                border-radius: 0;
+                padding: 15px;
+            }
+            .key { padding: 15px 0; font-size: 1.2em; border-radius: 10px; }
+            #current-input { font-size: 2.5em; }
+            .nav-btn span { display: none; } /* Hide labels on mobile for cleaner look */
+            .nav-btn .icon { margin: 0; }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+
+    <!-- 1. Animated Splash Screen -->
+    <div id="splash-screen">
+        <div class="logo-text">⚡ PRO-CALC OS</div>
+    </div>
+
+    <!-- 2. Main Application Container -->
+    <div id="app-container" class="hidden">
+        
+        <header>
+            <h1 class="app-title">Modern Calculator App</h1>
+            <!-- Theme Switcher -->
+            <div class="theme-switcher">
+                <button data-theme="dark" title="Dark Theme">🌙</button>
+                <button data-theme="light" title="Light Theme">💡</button>
+                <button data-theme="neon" title="Neon Theme">👾</button>
+            </div>
+        </header>
+
+        <!-- Display Area -->
+        <div class="display" id="display-area" title="Click to copy result">
+            <div id="history-preview"></div>
+            <div id="current-input">0</div>
+        </div>
+
+        <!-- Mode Navigation Bar -->
+        <nav class="navbar">
+            <button class="nav-btn active" data-mode="standard">
+                <span class="icon">➕➖</span> <span>Standard</span>
+            </button>
+            <button class="nav-btn" data-mode="scientific">
+                <span class="icon">🧮</span> <span>Scientific</span>
+            </button>
+            <button class="nav-btn" data-mode="converter">
+                <span class="icon">📐</span> <span>Converter</span>
+            </button>
+            <button class="nav-btn" data-mode="history">
+                <span class="icon">📜</span> <span>History</span>
+            </button>
+        </nav>
+
+        <!-- Interface Modes Container -->
+        <main class="interface-container">
+
+            <!-- Mode 1: Standard Calculator (Default) -->
+            <div id="standard" class="mode-panel active">
+                <div class="keypad-grid">
+                    <!-- Standard Keys -->
+                    <button class="key action-key" data-value="C">C</button>
+                    <button class="key action-key" data-value="DEL">⌫</button>
+                    <button class="key operator-key" data-value="%">%</button>
+                    <button class="key operator-key" data-value="/">÷</button>
+
+                    <button class="key num-key" data-value="7">7</button>
+                    <button class="key num-key" data-value="8">8</button>
+                    <button class="key num-key" data-value="9">9</button>
+                    <button class="key operator-key" data-value="*">×</button>
+
+                    <button class="key num-key" data-value="4">4</button>
+                    <button class="key num-key" data-value="5">5</button>
+                    <button class="key num-key" data-value="6">6</button>
+                    <button class="key operator-key" data-value="-">−</button>
+
+                    <button class="key num-key" data-value="1">1</button>
+                    <button class="key num-key" data-value="2">2</button>
+                    <button class="key num-key" data-value="3">3</button>
+                    <button class="key operator-key" data-value="+">+</button>
+
+                    <button class="key zero-key num-key" data-value="0">0</button>
+                    <button class="key num-key" data-value=".">.</button>
+                    <button class="key equals-key" data-value="=">=</button>
+                </div>
+            </div>
+
+            <!-- Mode 2: Scientific Calculator -->
+            <div id="scientific" class="mode-panel">
+                 <div class="keypad-grid">
+                    <button class="key func-key" data-value="(">(</button>
+                    <button class="key func-key" data-value=")">)</button>
+                    <button class="key func-key" data-value="sqrt">√</button>
+                    <button class="key func-key" data-value="^">xʸ</button>
+                    <button class="key action-key" data-value="C">C</button>
+
+                    <button class="key func-key" data-value="sin">sin</button>
+                    <button class="key func-key" data-value="cos">cos</button>
+                    <button class="key func-key" data-value="tan">tan</button>
+                    <button class="key func-key" data-value="log">log</button>
+                    <button class="key action-key" data-value="DEL">⌫</button>
+
+                    <button class="key func-key" data-value="ln">ln</button>
+                    <button class="key func-key" data-value="pi">π</button>
+                    <button class="key func-key" data-value="e">e</button>
+                    <button class="key operator-key" data-value="/">÷</button>
+                    <button class="key operator-key" data-value="*">×</button>
+
+                    <button class="key num-key" data-value="7">7</button>
+                    <button class="key num-key" data-value="8">8</button>
+                    <button class="key num-key" data-value="9">9</button>
+                    <button class="key operator-key" data-value="-">−</button>
+                    <button class="key operator-key" data-value="+">+</button>
+
+                    <button class="key num-key" data-value="4">4</button>
+                    <button class="key num-key" data-value="5">5</button>
+                    <button class="key num-key" data-value="6">6</button>
+                    <button class="key num-key" data-value="0" style="grid-column: span 2;">0</button>
+                    <button class="key num-key" data-value=".">.</button>
+                    <button class="key equals-key" data-value="=" style="grid-column: span 2;">=</button>
+                 </div>
+            </div>
+
+            <!-- Mode 3: Unit Converter -->
+            <div id="converter" class="mode-panel">
+                <div class="converter-panel">
+                    <div class="converter-controls">
+                        <label for="converter-type" style="opacity: 0.7;">Type:</label>
+                        <select id="converter-type">
+                            <option value="length">Length</option>
+                            <option value="weight">Weight</option>
+                            <option value="temperature">Temperature</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-unit-pair">
+                            <input type="number" id="convert-input" placeholder="Enter Value" value="1">
+                            <select id="unit-from"></select>
+                        </div>
+                        <div class="switch-units" title="Swap Units">↔</div>
+                        <div class="input-unit-pair">
+                            <input type="text" id="convert-result" readonly placeholder="Result" class="converter-result">
+                            <select id="unit-to"></select>
+                        </div>
+                    </div>
+                    <div id="conversion-formula" style="font-size: 0.9em; opacity: 0.6; min-height: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- Mode 4: History Panel -->
+            <div id="history" class="mode-panel">
+                <div id="history-list-wrapper">
+                    <div id="history-list">
+                        <!-- History items will be inserted here -->
+                        <p class="history-placeholder">No history yet. Start calculating!</p>
+                    </div>
+                </div>
+                <button id="clear-history-btn" class="key action-key" data-value="clear-history">Clear History</button>
+            </div>
+        </main>
+
+        <footer>Made with ❤️</footer>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+    
+    <script>
+        // --- Global State Variables ---
+        let currentInput = '0';
+        let historyPreview = '';
+        let currentMode = 'standard'; // Default mode
+        const MAX_HISTORY = 20;
+
+        // --- DOM Elements ---
+        const displayElement = document.getElementById('current-input');
+        const historyPreviewElement = document.getElementById('history-preview');
+        const appContainer = document.getElementById('app-container');
+        const splashScreen = document.getElementById('splash-screen');
+        const toastContainer = document.getElementById('toast-container');
+        
+        // Converter DOM elements
+        const converterTypeSelect = document.getElementById('converter-type');
+        const convertInput = document.getElementById('convert-input');
+        const convertResult = document.getElementById('convert-result');
+        const unitFromSelect = document.getElementById('unit-from');
+        const unitToSelect = document.getElementById('unit-to');
+        const formulaDisplay = document.getElementById('conversion-formula');
+
+        // --- Helper Functions ---
+
+        /**
+         * Shows a temporary toast notification.
+         */
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.classList.add('toast');
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        /**
+         * Creates and plays a visual ripple effect on a button.
+         */
+        function createRipple(e) {
+            const button = e.currentTarget;
+            const circle = document.createElement('span');
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${e.clientX - (button.getBoundingClientRect().left + radius)}px`;
+            circle.style.top = `${e.clientY - (button.getBoundingClientRect().top + radius)}px`;
+            circle.classList.add('ripple');
+
+            const ripple = button.getElementsByClassName('ripple')[0];
+            if (ripple) { ripple.remove(); }
+            button.appendChild(circle);
+        }
+
+        /**
+         * Updates the display elements, handling potential overflow.
+         */
+        function updateDisplay() {
+            displayElement.textContent = currentInput || '0';
+            historyPreviewElement.textContent = historyPreview || '';
+        }
+        
+        /**
+         * Converts display expression into JavaScript-safe expression for evaluation.
+         * Handles scientific functions, constants, and custom operators.
+         */
+        function sanitizeExpression(expression) {
+            let sanitized = expression
+                .replace(/×/g, '*')
+                .replace(/÷/g, '/')
+                .replace(/−/g, '-') // Replace display minus with JS minus
+                .replace(/π/g, 'Math.PI')
+                .replace(/e/g, 'Math.E')
+                // Functions: sin, cos, tan operate in degrees for a calc, so convert
+                .replace(/(sin|cos|tan)\(([^)]+)\)/g, (match, func, arg) => 
+                    `Math.${func}((Math.PI/180) * (${arg}))`
+                )
+                // log is usually log base 10 on calculators
+                .replace(/log\(([^)]+)\)/g, 'Math.log10($1)')
+                // ln is natural log (base e)
+                .replace(/ln\(([^)]+)\)/g, 'Math.log($1)') 
+                // Handle square root
+                .replace(/sqrt\(([^)]+)\)/g, 'Math.sqrt($1)'); 
+
+            // Handle custom power syntax (x^y) using regex lookbehind/lookahead for safe matching
+            // This is complex, so let's use a simpler, safer substitution where possible
+            sanitized = sanitized.replace(/(\d+(\.\d*)?|\)?)(\^)(\d+(\.\d*)?|\(?)/g, (match, base, _, op, exponent) => 
+                `Math.pow(${base},${exponent})`
+            );
+            
+            return sanitized;
+        }
+
+        /**
+         * Safely evaluates the math expression.
+         */
+        function evaluateExpression(expression) {
+            try {
+                let sanitized = sanitizeExpression(expression);
+                
+                // Check for invalid consecutive operators (e.g., ++, *-, /%)
+                if (/[+\-*/%]{2,}/.test(sanitized)) {
+                    return 'Error';
+                }
+
+                // eslint-disable-next-line no-new-func
+                const result = Function('"use strict";return (' + sanitized + ')')();
+
+                if (isNaN(result) || !isFinite(result)) {
+                    return 'Error';
+                }
+
+                // Format result to prevent floating point errors
+                return parseFloat(result.toFixed(10)).toString();
+
+            } catch (e) {
+                return 'Error';
+            }
+        }
+
+        /**
+         * Handles all button and keyboard inputs for Standard and Scientific modes.
+         */
+        function handleCalculatorInput(value) {
+            if (currentInput === 'Error' && value !== 'C') {
+                showToast('Error: Press C to clear.');
+                return;
+            }
+
+            if (value === 'C') {
+                currentInput = '0';
+                historyPreview = '';
+            } else if (value === 'DEL') {
+                if (currentInput.length === 1 || currentInput === 'Error') {
+                    currentInput = '0';
+                } else {
+                    currentInput = currentInput.slice(0, -1);
+                }
+            } else if (value === '=') {
+                let expression = historyPreview + currentInput;
+                const result = evaluateExpression(expression);
+
+                if (result !== 'Error') {
+                    saveHistory(expression.trim(), result);
+                    historyPreview = expression.trim() + ' =';
+                    currentInput = result;
+                } else {
+                    currentInput = 'Error';
+                    historyPreview = '';
+                    showToast('Invalid Expression ⚠️');
+                }
+            } else if (['+', '-', '*', '/', '%', '^'].includes(value)) {
+                // Operator pressed
+                const operatorDisplay = value.replace('*', '×').replace('/', '÷').replace('-', '−');
+                const lastChar = historyPreview.slice(-1);
+
+                if (historyPreview.trim() !== '') {
+                    // Replace existing operator
+                    if (['+', '−', '×', '÷', '%', '^'].includes(lastChar)) {
+                        historyPreview = historyPreview.slice(0, -1) + operatorDisplay;
+                    } else if (currentInput !== '0') {
+                        // Evaluate previous expression before adding new operator
+                        const fullExpression = historyPreview + currentInput;
+                        const result = evaluateExpression(fullExpression);
+                        if (result !== 'Error') {
+                            historyPreview = result + ' ' + operatorDisplay;
+                            currentInput = '0';
+                        } else {
+                            currentInput = 'Error';
+                            historyPreview = '';
+                            showToast('Invalid chain ⚠️');
+                        }
+                    }
+                } else {
+                    // Start new expression
+                    historyPreview = currentInput + ' ' + operatorDisplay;
+                    currentInput = '0';
+                }
+            } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt'].includes(value)) {
+                 // Function handling (automatically adds parentheses)
+                 if (currentInput === '0') currentInput = '';
+                 currentInput += `${value}(`;
+            } else if (['(', ')'].includes(value)) {
+                currentInput += value;
+            } else if (value === 'pi') {
+                currentInput = currentInput === '0' ? 'π' : currentInput + 'π';
+            } else if (value === 'e') {
+                currentInput = currentInput === '0' ? 'e' : currentInput + 'e';
+            } else if (value === '.') {
+                if (!currentInput.includes('.')) {
+                    currentInput += '.';
+                }
+            } else {
+                // Number input
+                if (currentInput === '0' || currentInput === 'Error') {
+                    currentInput = value;
+                } else {
+                    currentInput += value;
+                }
+            }
+
+            if (currentInput.length > 25 && currentInput.indexOf('e') === -1) {
+                 currentInput = parseFloat(currentInput).toExponential(5);
+            }
+            updateDisplay();
+        }
+
+        // --- 2. History Logic (localStorage) ---
+
+        function loadHistory() {
+            try {
+                const historyJson = localStorage.getItem('calcHistory');
+                return historyJson ? JSON.parse(historyJson) : [];
+            } catch (e) {
+                console.error("Error loading history:", e);
+                return [];
+            }
+        }
+
+        function saveHistory(expression, result) {
+            const history = loadHistory();
+            
+            // Format for display
+            const displayExpression = expression.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−');
+            
+            history.unshift({
+                expression: displayExpression,
+                result: result,
+                timestamp: new Date().toLocaleString()
+            });
+
+            while (history.length > MAX_HISTORY) {
+                history.pop();
+            }
+
+            try {
+                localStorage.setItem('calcHistory', JSON.stringify(history));
+            } catch (e) {
+                console.error("Error saving history:", e);
+                showToast('History storage full or unavailable.');
+            }
+        }
+
+        function renderHistory() {
+            const history = loadHistory();
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<p class="history-placeholder">No history yet. Start calculating!</p>';
+                return;
+            }
+
+            history.forEach((item) => {
+                const div = document.createElement('div');
+                div.classList.add('history-item');
+                div.innerHTML = `
+                    <div class="expression">${item.expression}</div>
+                    <div class="result">${item.result}</div>
+                `;
+                div.addEventListener('click', () => reuseHistory(item));
+                historyList.appendChild(div);
+            });
+        }
+
+        function reuseHistory(item) {
+            currentInput = item.result;
+            historyPreview = '';
+            updateDisplay();
+            showToast(`Result ${item.result} loaded ✅`);
+            switchMode('standard'); // Switch back to standard mode
+        }
+        
+        function clearHistory() {
+            // Using custom toast as replacement for confirm()
+            showToast('History Cleared!');
+            localStorage.removeItem('calcHistory');
+            renderHistory();
+        }
+
+        // --- 3. Unit Converter Logic ---
+
+        const CONVERSION_RATES = {
+            length: {
+                'm (Meter)': 1, 'km (Kilometer)': 1000, 'mi (Mile)': 1609.34, 'yd (Yard)': 0.9144, 'ft (Foot)': 0.3048, 'in (Inch)': 0.0254
+            },
+            weight: {
+                'kg (Kilogram)': 1, 'g (Gram)': 0.001, 'lb (Pound)': 0.453592, 'oz (Ounce)': 0.0283495, 'ton (Metric)': 1000
+            },
+            temperature: {
+                'C (Celsius)': { toBase: v => v, fromBase: v => v, formula: 'T(C)' }, 
+                'F (Fahrenheit)': { toBase: v => (v - 32) * 5 / 9, fromBase: v => (v * 9 / 5) + 32, formula: 'T(F) = T(C) * 9/5 + 32' },
+                'K (Kelvin)': { toBase: v => v - 273.15, fromBase: v => v + 273.15, formula: 'T(K) = T(C) + 273.15' }
+            }
+        };
+
+        function setupConverterDropdowns() {
+            const type = converterTypeSelect.value;
+            const units = CONVERSION_RATES[type];
+
+            unitFromSelect.innerHTML = '';
+            unitToSelect.innerHTML = '';
+
+            for (const unit in units) {
+                unitFromSelect.add(new Option(unit, unit));
+                unitToSelect.add(new Option(unit, unit));
+            }
+            
+            // Set sensible defaults
+            if (type === 'length') {
+                unitFromSelect.value = 'm (Meter)';
+                unitToSelect.value = 'ft (Foot)';
+            } else if (type === 'weight') {
+                unitFromSelect.value = 'kg (Kilogram)';
+                unitToSelect.value = 'lb (Pound)';
+            } else if (type === 'temperature') {
+                unitFromSelect.value = 'C (Celsius)';
+                unitToSelect.value = 'F (Fahrenheit)';
+            }
+
+            performConversion();
+        }
+
+        function performConversion() {
+            const type = converterTypeSelect.value;
+            let value = parseFloat(convertInput.value);
+            const unitFrom = unitFromSelect.value;
+            const unitTo = unitToSelect.value;
+
+            if (isNaN(value)) {
+                convertResult.value = 'Invalid Input';
+                formulaDisplay.textContent = 'Enter a valid number.';
+                return;
+            }
+
+            if (type === 'temperature') {
+                const tempUnits = CONVERSION_RATES[type];
+                
+                // 1. Convert FROM -> Base (Celsius)
+                const baseValue = tempUnits[unitFrom].toBase(value);
+                
+                // 2. Convert Base (Celsius) -> TO
+                const result = tempUnits[unitTo].fromBase(baseValue);
+                
+                convertResult.value = parseFloat(result.toFixed(5));
+                formulaDisplay.textContent = `Conversion: ${unitFrom} to ${unitTo}`;
+            } else {
+                // Linear conversion: Base unit is the one with rate 1 (Meter or Kilogram)
+                const linearUnits = CONVERSION_RATES[type];
+                
+                // 1. Convert FROM -> Base
+                const baseValue = value * linearUnits[unitFrom];
+                
+                // 2. Convert Base -> TO
+                const result = baseValue / linearUnits[unitTo];
+                
+                convertResult.value = parseFloat(result.toFixed(5));
+                formulaDisplay.textContent = `${value} ${unitFrom} = ${convertResult.value} ${unitTo}`;
+            }
+        }
+        
+        function swapUnits() {
+            const tempFrom = unitFromSelect.value;
+            unitFromSelect.value = unitToSelect.value;
+            unitToSelect.value = tempFrom;
+            performConversion();
+            showToast('Units Swapped ↔');
+        }
+
+        // --- 4. Navigation and Theme Management ---
+
+        /**
+         * Switches the active calculator interface mode.
+         */
+        function switchMode(newMode) {
+            if (newMode === currentMode) return;
+
+            // 1. Deactivate old mode
+            document.getElementById(currentMode).classList.remove('active');
+            document.querySelector(`.nav-btn[data-mode="${currentMode}"]`).classList.remove('active');
+
+            // 2. Activate new mode
+            currentMode = newMode;
+            document.getElementById(newMode).classList.add('active');
+            document.querySelector(`.nav-btn[data-mode="${newMode}"]`).classList.add('active');
+            
+            // 3. Clear calculator state when switching out of calculator modes
+            if (newMode === 'converter' || newMode === 'history') {
+                currentInput = '0';
+                historyPreview = '';
+                updateDisplay();
+            }
+
+            // 4. Mode-specific initialization
+            if (newMode === 'history') {
+                renderHistory();
+            } else if (newMode === 'converter') {
+                setupConverterDropdowns();
+            }
+            
+            showToast(`Mode: ${newMode.charAt(0).toUpperCase() + newMode.slice(1)}`);
+        }
+
+        /**
+         * Sets the active theme for the application.
+         */
+        function setTheme(themeName) {
+            document.body.className = `${themeName}-theme`;
+            localStorage.setItem('theme', themeName);
+            showToast(`Theme: ${themeName.charAt(0).toUpperCase() + themeName.slice(1)} Mode`);
+        }
+
+        // --- 5. Event Listeners & Initialization ---
+
+        function setupListeners() {
+            // Calculator Keypad Listeners (Standard & Scientific)
+            document.querySelectorAll('#standard .key, #scientific .key').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    createRipple(e);
+                    handleCalculatorInput(button.dataset.value);
+                });
+            });
+
+            // Navigation Listeners
+            document.querySelectorAll('.nav-btn').forEach(button => {
+                button.addEventListener('click', () => switchMode(button.dataset.mode));
+            });
+
+            // Theme Switcher Listeners
+            document.querySelectorAll('.theme-switcher button').forEach(button => {
+                button.addEventListener('click', () => setTheme(button.dataset.theme));
+            });
+
+            // History Clear Listener
+            document.getElementById('clear-history-btn').addEventListener('click', clearHistory);
+
+            // Converter Listeners
+            converterTypeSelect.addEventListener('change', setupConverterDropdowns);
+            convertInput.addEventListener('input', performConversion);
+            unitFromSelect.addEventListener('change', performConversion);
+            unitToSelect.addEventListener('change', performConversion);
+            document.querySelector('.switch-units').addEventListener('click', swapUnits);
+
+            // Keyboard Input Listener
+            document.addEventListener('keydown', (e) => {
+                if (currentMode === 'standard' || currentMode === 'scientific') {
+                    const keyMap = {
+                        'Enter': '=', 'Backspace': 'DEL',
+                        '/': '/', '*': '*', '-': '-', '+': '+',
+                        '%': '%', '.': '.', '^': '^',
+                        '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+                        '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
+                        'c': 'C', 'C': 'C', '(': '(', ')': ')'
+                    };
+                    const value = keyMap[e.key];
+
+                    if (value) {
+                        e.preventDefault();
+                        handleCalculatorInput(value);
+                        // Optional visual feedback on keypress
+                        const btn = document.querySelector(`.key[data-value="${value.replace('=', '\\=').replace('+', '\\+').replace('-', '\\-').replace('*', '\\*').replace('/', '\\/').replace('^', '\\^')}"]`);
+                        if (btn) {
+                            btn.classList.add('key:active');
+                            setTimeout(() => btn.classList.remove('key:active'), 100);
+                        }
+                    }
+                }
+            });
+
+            // Copy to clipboard on display click
+            document.getElementById('display-area').addEventListener('click', () => {
+                if (currentInput && currentInput !== 'Error' && currentInput !== '0') {
+                    const tempTextarea = document.createElement('textarea');
+                    tempTextarea.value = currentInput;
+                    document.body.appendChild(tempTextarea);
+                    tempTextarea.select();
+                    try {
+                        document.execCommand('copy');
+                        showToast('Copied to clipboard ✅');
+                    } catch (err) {
+                        showToast('Copy failed ❌');
+                    }
+                    document.body.removeChild(tempTextarea);
+                }
+            });
+        }
+
+        /**
+         * Initial application setup (runs on load).
+         */
+        function init() {
+            // 1. Splash Screen Intro
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                splashScreen.style.visibility = 'hidden';
+                appContainer.classList.remove('hidden');
+            }, 2000); // 2 second display
+
+            // 2. Load Theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.className = `${savedTheme}-theme`;
+
+            // 3. Update initial display
+            updateDisplay();
+            
+            // 4. Setup listeners and initial converter view
+            setupListeners();
+            setupConverterDropdowns();
+        }
+
+        // Start the application after DOM content is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
